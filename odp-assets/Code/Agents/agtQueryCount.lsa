@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='utf-8'?>
+<agent name='agtQueryCount' xmlns='http://www.lotus.com/dxl' version='12.0' maintenanceversion='2.5'
+ replicaid='REPLACE_WITH_DB_REPLICAID' hide='v3' publicaccess='false' designerversion='8.5.3'>
+<trigger type='actionsmenu'/>
+<documentset type='runonce'/><code event='options'><lotusscript>Option Public
+Option Declare
+%Include "lsconst.lss"
+</lotusscript></code><code event='initialize'><lotusscript>Sub Initialize
+	On Error Goto errorHandler
+	Dim session As New NotesSession
+	Dim ws As New NotesUIWorkspace
+	Dim db As NotesDatabase
+	Set db = session.CurrentDatabase
+
+	' 1. 選 view
+	Dim viewNames() As String
+	Dim i As Integer
+	i = 0
+	ForAll v In db.Views
+		Redim Preserve viewNames(i)
+		viewNames(i) = v.Name
+		i = i + 1
+	End ForAll
+	If i = 0 Then
+		Msgbox "此資料庫沒有 view", 48, "agtQueryCount"
+		Exit Sub
+	End If
+	Dim pick As Variant
+	pick = ws.Prompt(PROMPT_OKCANCELLIST, "選擇 view", "要查詢哪個 view？", viewNames(0), viewNames)
+	If Isempty(pick) Then Exit Sub
+	Dim viewName As String
+	viewName = Cstr(pick)
+
+	' 2. 直欄 programmatic name
+	pick = ws.Prompt(PROMPT_OKCANCELEDIT, "直欄", "直欄 programmatic name：", "$123")
+	If Isempty(pick) Then Exit Sub
+	Dim colName As String
+	colName = Cstr(pick)
+
+	' 3. 日期區間
+	pick = ws.Prompt(PROMPT_OKCANCELEDIT, "起日", "起日（含），格式 yyyy/mm/dd：", "2024/01/01")
+	If Isempty(pick) Then Exit Sub
+	Dim dtStart As String
+	dtStart = Cstr(pick)
+	pick = ws.Prompt(PROMPT_OKCANCELEDIT, "訖日", "訖日（不含），格式 yyyy/mm/dd：", "2024/02/01")
+	If Isempty(pick) Then Exit Sub
+	Dim dtEnd As String
+	dtEnd = Cstr(pick)
+
+	' 4. 比較型別（直欄輸出型別要跟查詢詞一致 — DQL 不自動轉型）
+	Dim modes(1) As String
+	modes(0) = "文字比較（直欄輸出文字，需補零 yyyy/mm/dd 格式）"
+	modes(1) = "@dt 日期比較（直欄輸出日期時間型，自動帶 +08:00）"
+	pick = ws.Prompt(PROMPT_OKCANCELLIST, "比較型別", "直欄輸出的是文字還是日期時間？", modes(0), modes)
+	If Isempty(pick) Then Exit Sub
+
+	' 5. 組 query
+	Dim colRef As String
+	colRef = "'" &amp; viewName &amp; "'." &amp; colName
+	Dim query As String
+	If Cstr(pick) = modes(0) Then
+		query = "in ('" &amp; viewName &amp; "') and " &amp; colRef &amp; " &gt;= '" &amp; dtStart &amp; "' and " &amp; colRef &amp; " &lt; '" &amp; dtEnd &amp; "'"
+	Else
+		query = "in ('" &amp; viewName &amp; "') and " &amp; colRef &amp; " &gt;= @dt('" &amp; ToIso(dtStart) &amp; "') and " &amp; colRef &amp; " &lt; @dt('" &amp; ToIso(dtEnd) &amp; "')"
+	End If
+
+	' 6. 執行 + Explain 成本資訊
+	Dim dq As NotesDominoQuery
+	Set dq = db.CreateDominoQuery()
+	dq.RefreshViews = True
+	Dim coll As NotesDocumentCollection
+	Set coll = dq.Execute(query)
+	Dim explainTxt As String
+	explainTxt = dq.Explain(query)
+
+	' 7. 輸出：Msgbox 摘要 + 完整 Explain 寫檔
+	Dim outPath As String
+	outPath = Environ("TEMP") &amp; "\dql-query-cost.txt"
+	Dim fileNum As Integer
+	fileNum = Freefile
+	Open outPath For Output As fileNum
+	Print #fileNum, "執行時間：" &amp; Format$(Now, "yyyy/mm/dd hh:nn:ss")
+	Print #fileNum, "資料庫：[" &amp; db.Server &amp; "] " &amp; db.FilePath
+	Print #fileNum, "Query: " &amp; query
+	Print #fileNum, "命中筆數：" &amp; Cstr(coll.Count)
+	Print #fileNum, ""
+	Print #fileNum, "=== Explain（成本資訊）==="
+	Print #fileNum, explainTxt
+	Close fileNum
+
+	Msgbox "Query:" &amp; Chr(10) &amp; query &amp; Chr(10) &amp; Chr(10) &amp; _
+	"命中筆數：" &amp; Cstr(coll.Count) &amp; Chr(10) &amp; Chr(10) &amp; _
+	"完整成本計畫（Explain）已寫入：" &amp; Chr(10) &amp; outPath &amp; Chr(10) &amp; Chr(10) &amp; _
+	"判讀重點：ScannedDocs 0 = 純走索引；各節點看 estimated cost 與 Exec msecs", 64, "agtQueryCount"
+	Exit Sub
+errorHandler:
+	If Err = 4854 Then
+		Msgbox "DQL 錯誤（4854）：" &amp; Chr(10) &amp; Error$ &amp; Chr(10) &amp; Chr(10) &amp; _
+		"對照診斷階梯：" &amp; Chr(10) &amp; _
+		"- needs to be cataloged → load updall &lt;db&gt; -e" &amp; Chr(10) &amp; _
+		"- View never built → 開一次該 view" &amp; Chr(10) &amp; _
+		"- Partial TIMEDATEs → @dt 要完整 timestamp", 48, "agtQueryCount"
+	Else
+		Msgbox "錯誤 " &amp; Cstr(Err) &amp; "：" &amp; Error$ &amp; "（第 " &amp; Cstr(Erl) &amp; " 行）", 16, "agtQueryCount 錯誤"
+	End If
+	Exit Sub
+End Sub
+
+Function ToIso(d As String) As String
+	' yyyy/m/d → yyyy-mm-ddT00:00:00+08:00（自動補零）
+	Dim p As Variant
+	p = Split(d, "/")
+	ToIso = p(0) &amp; "-" &amp; Right("0" &amp; p(1), 2) &amp; "-" &amp; Right("0" &amp; p(2), 2) &amp; "T00:00:00+08:00"
+End Function</lotusscript></code>
+</agent>
