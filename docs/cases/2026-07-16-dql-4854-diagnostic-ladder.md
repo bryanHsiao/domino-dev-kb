@@ -14,6 +14,30 @@
 
 ---
 
+## 4854 是什麼、從哪來
+
+`4854` 是 **LotusScript 層的統包錯誤碼**，定義在 Notes/Domino 安裝目錄的 `lsxbeerr.lss`（實機 12.0.2 摘錄）：
+
+```lotusscript
+Public Const lsERR_NOTES_DQUERY_INTERNAL  = 4852   ' DQL 內部錯誤
+Public Const lsERR_NOTES_DQUERY_PLANNING  = 4853   ' 查詢規劃階段錯誤
+Public Const lsERR_NOTES_DQUERY_EXECUTION = 4854   ' 查詢執行錯誤（最常見）
+Public Const lsERR_NOTES_DQUERY_TIMEOUT   = 4855   ' 查詢逾時
+Public Const lsERR_NOTES_DQUERY_NOQUERY   = 4856   ' 沒有查詢字串
+```
+
+`NotesDominoQuery.Execute / Explain` 失敗時 `Err` 一律回 4854，**錯誤碼本身幾乎不帶診斷資訊**；真正的細節在錯誤文字（`Error$`）裡，由 DQL 引擎組成固定四段：
+
+```
+Domino Query 執行時錯誤:                          ← LS 對 4854 的訊息前綴
+Query is not understandable - 語法錯誤            ← ① 引擎分類行
+Partial TIMEDATEs NOT supported with view...      ← ② 詳細原因（診斷階梯看這行）
+in ('vwTestTyped') and ...                        ← ③ 原查詢字串回顯
+(Call hint: NSFCalls::NSFItemInfo, Core call #0)  ← ④ 內部出錯的 API 呼叫點
+```
+
+**實務守則**：error handler 一定要印 `Error$` 全文（只印 `Err` 等於什麼都沒印）；下方診斷階梯的分層依據就是②那一行。
+
 ## 4854 三層診斷階梯（實測原文）
 
 | 層 | 4854 錯誤訊息（runtime 原文） | 病因 | 解法 |
