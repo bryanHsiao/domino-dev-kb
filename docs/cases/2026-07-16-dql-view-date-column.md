@@ -28,7 +28,7 @@
 >
 > "Use a single quote (') to force DQL processing to interpret arguments as **text rather than date/times or numerals**."
 
-— [DQL syntax（HCL Domino Designer 12.0.2）](https://help.hcl-software.com/dom_designer/12.0.2/basic/dql_syntax.html)
+— [DQL syntax（HCL Domino Designer 14.5.1）](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_syntax.html)
 
 意思是：`'2024/01/01'`（單引號）= 搜文字；`@dt('2024-01-01T00:00:00+08:00')` = 搜日期時間。存的值型別跟查詢詞型別不同，就不會被比對到。
 
@@ -38,7 +38,7 @@
 >
 > （解法：view 搜尋要給完整值，例如 `@dt('2018-09-01T00:00:00.000Z')`）
 
-— [Date and time values（HCL Domino Designer 12.0.2）](https://help.hcl-software.com/dom_designer/12.0.2/basic/dql_date_and_time.html)
+— [Date and time values（HCL Domino Designer 14.5.1）](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_date_and_time.html)
 
 ### 3. @dt 不加時區 = UTC
 
@@ -50,15 +50,15 @@
 
 > "Columnname is the programmatic name of any **primary sorted column** in the view or folder specified."（直欄必須是有排序的直欄；`$123` 是 programmatic name，來文日期直欄有設遞增排序，符合）
 
-— [DQL syntax](https://help.hcl-software.com/dom_designer/12.0.2/basic/dql_syntax.html)、[View column requirements](https://help.hcl-software.com/dom_designer/11.0.1/basic/dql_view_column.html)
+— [DQL syntax](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_syntax.html)、[View column requirements](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_view_column.html)
 
 > Design catalog 過期時："Only the `<'View or folder name'>.<Columnname>` syntax will fail."
 
-— [Design catalog](https://help.hcl-software.com/dom_designer/14.5.0/basic/dql_design_catalog.html)
+— [Design catalog](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_design_catalog.html)
 
 ### 5. `SELECT @All` 條件：官方文件 vs 實測（重要修正）
 
-官方文件（[View column requirements](https://help.hcl-software.com/dom_designer/14.5.0/basic/dql_view_column.html)）寫 `'view'.column` 語法要求：
+官方文件（[View column requirements](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_view_column.html)）寫 `'view'.column` 語法要求：
 
 > "the view must use Select @All as its selection criteria."（不符時 "the query fails with a return code"）
 
@@ -171,9 +171,9 @@ in ('viewName') and
 
 ## 參考資料
 
-- [DQL syntax — HCL Domino Designer 12.0.2](https://help.hcl-software.com/dom_designer/12.0.2/basic/dql_syntax.html)
-- [Date and time values — HCL Domino Designer 12.0.2](https://help.hcl-software.com/dom_designer/12.0.2/basic/dql_date_and_time.html)
-- [View column requirements — HCL Domino Designer 11.0.1](https://help.hcl-software.com/dom_designer/11.0.1/basic/dql_view_column.html)
-- [Design catalog — HCL Domino Designer 14.5.0](https://help.hcl-software.com/dom_designer/14.5.0/basic/dql_design_catalog.html)
-- [View column requirements — HCL Domino Designer 14.5.0](https://help.hcl-software.com/dom_designer/14.5.0/basic/dql_view_column.html)
+- [DQL syntax — HCL Domino Designer 14.5.1](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_syntax.html)
+- [Date and time values — HCL Domino Designer 14.5.1](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_date_and_time.html)
+- [View column requirements — HCL Domino Designer 14.5.1](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_view_column.html)
+- [Design catalog — HCL Domino Designer 14.5.1](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_design_catalog.html)
+- [View column requirements — HCL Domino Designer 14.5.1](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_view_column.html)
 - [DQL 踩坑筆記（Domino 12 實測）— domino-news](https://bryanhsiao.github.io/domino-news/posts/dql-pitfalls/)

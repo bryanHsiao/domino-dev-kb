@@ -82,7 +82,7 @@
 
 ## 參考資料
 
-- [Design catalog — HCL Domino Designer 14.5.0](https://help.hcl-software.com/dom_designer/14.5.0/basic/dql_design_catalog.html)
-- [DQL syntax — HCL Domino Designer 12.0.2](https://help.hcl-software.com/dom_designer/12.0.2/basic/dql_syntax.html)
+- [Design catalog — HCL Domino Designer 14.5.1](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_design_catalog.html)
+- [DQL syntax — HCL Domino Designer 14.5.1](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_syntax.html)
 - [第一篇案例：DQL view 日期直欄型別查證](2026-07-16-dql-view-date-column.md)
 - 測試素材：repo 的 `odp-assets/`（4 views + 2 agents，可重複部署驗證）
