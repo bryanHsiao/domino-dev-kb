@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <view name='vwTestRealClone' xmlns='http://www.lotus.com/dxl' version='12.0' showinmenu='true' publicaccess='false' designerversion='8.5.3'>
-<code event='selection'><formula>SELECT Form = "frmDoc"</formula></code>
+<code event='selection'><formula>SELECT Form = "frmDoc" &amp; @Left(Subject; 2) != "T6"</formula></code>
 <column sort='ascending' itemname='Dept' width='12' resizable='true' categorized='true' twisties='true'>
 <columnheader title='機關(分類欄,仿真實view)'><font size='9pt' style='bold'/></columnheader>
 </column>

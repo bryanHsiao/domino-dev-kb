@@ -56,6 +56,18 @@
 
 — [Design catalog](https://help.hcl-software.com/dom_designer/14.5.0/basic/dql_design_catalog.html)
 
+### 5. `SELECT @All` 條件：官方文件 vs 實測（重要修正）
+
+官方文件（[View column requirements](https://help.hcl-software.com/dom_designer/14.5.0/basic/dql_view_column.html)）寫 `'view'.column` 語法要求：
+
+> "the view must use Select @All as its selection criteria."（不符時 "the query fails with a return code"）
+
+但 **Domino 12 實測行為不是報錯**（見 [DQL 踩坑筆記](https://bryanhsiao.github.io/domino-news/posts/dql-pitfalls/)）：
+
+> "runtime 不會擋下「view 不是 Select @All」的查詢，沒有錯誤訊息 —— 但 **DQL 會以該 view selection 篩出來的 doc 為範圍**做查詢"
+
+原因是 DQL 底層直接用 view 既有的 column index，而 index 建立時就只含符合 selection 的文件。**實務影響**：view selection 公式篩掉的文件，查詢時無聲消失、不會有任何錯誤——這在 selection 複雜的正式 view 上是另一個「有些抓得到有些沒抓到」的來源。解法（依該文）：改 view 為 `SELECT @All`、改用 `in('viewname') and field = value` 語法、或建專用的 `($DQL)` 查詢 view。
+
 **改過直欄公式之後**，記得讓 view index 重建，並更新 design catalog：
 `load updall <db path> -d`（初次建立用 `-e`）。沒更新的話，view 直欄語法可能失敗或用到舊的直欄定義。
 
@@ -70,6 +82,7 @@
 | 底層 DocDate 混型（部分文件存文字） | 直欄改成回傳日期後，`@IsText` 分支的文件直欄值仍是文字；`@dt` 查詢詞只比對日期型的值 | 日期型的那批抓得到，文字型的那批默默消失 |
 | `@dt` 沒帶 `+08:00` | 查詢邊界被當成 UTC，與台灣時間差 8 小時 | 邊界日（起訖日）附近的文件跑錯邊 |
 | `@dt` 只給日期沒給時間 | view 搜尋不支援 partial date | 查詢報錯或行為不符預期 |
+| view selection 不是 `SELECT @All` | DQL 以 view index 為範圍，被 selection 篩掉的文件不在 index 內（實測不報錯） | selection 排除的文件無聲消失 |
 
 ---
 
@@ -130,3 +143,5 @@ in ('viewName') and
 - [Date and time values — HCL Domino Designer 12.0.2](https://help.hcl-software.com/dom_designer/12.0.2/basic/dql_date_and_time.html)
 - [View column requirements — HCL Domino Designer 11.0.1](https://help.hcl-software.com/dom_designer/11.0.1/basic/dql_view_column.html)
 - [Design catalog — HCL Domino Designer 14.5.0](https://help.hcl-software.com/dom_designer/14.5.0/basic/dql_design_catalog.html)
+- [View column requirements — HCL Domino Designer 14.5.0](https://help.hcl-software.com/dom_designer/14.5.0/basic/dql_view_column.html)
+- [DQL 踩坑筆記（Domino 12 實測）— domino-news](https://bryanhsiao.github.io/domino-news/posts/dql-pitfalls/)
