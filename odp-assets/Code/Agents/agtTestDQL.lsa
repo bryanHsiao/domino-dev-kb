@@ -18,9 +18,15 @@ Dim fileNum As Integer
 	Open outPath For Output As fileNum
 
 	Print #fileNum, "DQL view 日期直欄搜尋測試 — " &amp; Format$(Now, "yyyy/mm/dd hh:nn:ss")
-	Print #fileNum, "資料庫：" &amp; db.FilePath
+	Print #fileNum, "資料庫：[" &amp; db.Server &amp; "] " &amp; db.FilePath
 	Print #fileNum, "目標區間：2024/01/01（含）～ 2024/02/01（不含）本機時間"
 	Print #fileNum, "理想命中：T1, T2, T3, T6, T7, T8（共 6 筆）；T4, T5 為區間外對照組"
+
+	' 診斷 0：純欄位查詢（不經 view）— 驗證 DQL 是否看得到測試文件本體
+	Call RunQuery(db, "診斷0a. 純欄位查詢 Form='frmDoc'（不經 view，預期 8 筆）", _
+	"Form = 'frmDoc'")
+	Call RunQuery(db, "診斷0b. 單獨 in ('vwTestTyped')（驗證 view index 內 entry 數）", _
+	"in ('vwTestTyped')")
 
 	' A. 現行做法：文字比較 vs @Text(@Date) 地區格式文字直欄
 	Call RunQuery(db, "A. 文字比較 vs 現行直欄 vwTestProd（地區格式文字）", _
@@ -70,6 +76,7 @@ Sub RunQuery(db As NotesDatabase, label As String, query As String)
 	Dim coll As NotesDocumentCollection
 	Dim doc As NotesDocument
 	Set dq = db.CreateDominoQuery()
+	Call TrySetRefreshViews(dq)
 	Print #fileNum, ""
 	Print #fileNum, "=== " &amp; label
 	Print #fileNum, "Query: " &amp; query
@@ -83,6 +90,17 @@ Sub RunQuery(db As NotesDatabase, label As String, query As String)
 	Exit Sub
 queryError:
 	Print #fileNum, "  ** 查詢錯誤 " &amp; Cstr(Err) &amp; "：" &amp; Error$
+	Exit Sub
+End Sub
+
+Sub TrySetRefreshViews(dq As NotesDominoQuery)
+	' RefreshViews：查詢時強制重整 view index。用獨立 error trap 包住，
+	' 若該 Domino 版本無此屬性則記錄後略過、不中斷測試
+	On Error Goto noProp
+	dq.RefreshViews = True
+	Exit Sub
+noProp:
+	Print #fileNum, "  (RefreshViews 屬性不可用：" &amp; Error$ &amp; ")"
 	Exit Sub
 End Sub
 
