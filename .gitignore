@@ -4,3 +4,6 @@ __pycache__/
 
 # 真實系統的 ODP 設計元件（含機關內部表單/view），不推上 public repo
 odp/
+
+# 測試 log（含真實文件日期資料），本機留存供查考、不上 public repo
+test-logs/

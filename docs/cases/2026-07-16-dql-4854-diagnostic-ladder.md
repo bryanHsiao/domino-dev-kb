@@ -38,11 +38,23 @@ in ('vwTestTyped') and ...                        ← ③ 原查詢字串回顯
 
 **實務守則**：error handler 一定要印 `Error$` 全文（只印 `Err` 等於什麼都沒印）；下方診斷階梯的分層依據就是②那一行。
 
+**重現實驗（agtRepro4854，2026-07-16 實測）**——五種刻意錯誤的 `Err` 值：
+
+| 情境 | Err | 訊息重點 |
+|---|---|---|
+| `@dt` 只給日期 | 4854 | `Partial TIMEDATEs NOT supported...` |
+| 不存在的 view | 4854 | `invalid view name or database needs to be cataloged`——**view 名打錯跟缺 catalog 是同一句話**，先檢查名字 |
+| 語法錯誤（`and and`） | 4854（**不是** 4853 PLANNING） | `Query is not understandable`，且附插入符號指標行 `.....^.....` 指出錯誤字元位置 |
+| 空查詢字串 | 4854（**不是** 4856 NOQUERY） | `Query null or length error or illegal flags` |
+| 正確查詢（對照組） | 無錯誤 | 命中 6 筆 |
+
+**結論：LotusScript 實測中所有 DQL 失敗一律回 4854**——4852/4853/4855/4856 常數雖然存在，但一般查詢錯誤根本用不到。錯誤分類只能靠訊息文字，再次印證本節標題。
+
 ## 錯誤訊息三層診斷階梯（實測原文）
 
 | 層 | 錯誤訊息第②行（runtime 原文） | 病因 | 解法 |
 |---|---|---|---|
-| 1 | `Error validating view column name - ['view'.$123]`<br>`.. invalid view name or database needs to be cataloged via updall -e` | DB 沒有 design catalog | `load updall <db> -e` |
+| 1 | `Error validating view column name - ['view'.$123]`<br>`.. invalid view name or database needs to be cataloged via updall -e` | DB 沒有 design catalog，**或 view 名稱/直欄名打錯**（實測兩者同一句話） | 先檢查 view 名與直欄名拼字，再 `load updall <db> -e` |
 | 2 | `View never built [viewName] - query term will fail, aborting` | view 建好後**從未被開啟過**、index 不存在——DQL 不會代建 | 開一次 view，或 `load updall <db> -t <view>` |
 | 3 | `Partial TIMEDATEs NOT supported with view column lookup, specify a full TIMEDATE` | `@dt` 只給日期、沒給完整 timestamp | `@dt('2024-01-01T00:00:00+08:00')` 完整值 |
 

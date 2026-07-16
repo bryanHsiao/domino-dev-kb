@@ -13,7 +13,7 @@ Dim fileNum As Integer
 	Set db = session.CurrentDatabase
 
 	Dim outPath As String
-	outPath = Environ("TEMP") &amp; "\dql-4854-repro.txt"
+	outPath = LogPath("agtRepro4854")
 	fileNum = Freefile
 	Open outPath For Output As fileNum
 
@@ -55,6 +55,15 @@ errorHandler:
 	Msgbox "錯誤 " &amp; Cstr(Err) &amp; "：" &amp; Error$ &amp; "（第 " &amp; Cstr(Erl) &amp; " 行）", 16, "agtRepro4854 錯誤"
 	Exit Sub
 End Sub
+
+Function LogPath(agentName As String) As String
+	' log 歸檔：寫進專案 test-logs\&lt;agent&gt;\ 分類存放（時間戳檔名、不互相覆蓋）；
+	' 資料夾不存在（如在別台機器跑）則 fallback 到 %TEMP%
+	Dim logDir As String
+	logDir = "C:\Users\siaob\code\20260716-dql-view-date-column-cast-research\test-logs\" &amp; agentName
+	If Dir$(logDir, 16) = "" Then logDir = Environ("TEMP")
+	LogPath = logDir &amp; "\" &amp; agentName &amp; "_" &amp; Format$(Now, "yyyymmdd-hhnnss") &amp; ".txt"
+End Function
 
 Sub RunBroken(db As NotesDatabase, label As String, query As String)
 	On Error Goto brokenErr

@@ -77,7 +77,7 @@ Dim gCatalogRebuilt As Boolean
 
 	' 7. 輸出：Msgbox 摘要 + 完整 Explain 寫檔
 	Dim outPath As String
-	outPath = Environ("TEMP") &amp; "\dql-query-cost.txt"
+	outPath = LogPath("agtQueryCount")
 	Dim fileNum As Integer
 	fileNum = Freefile
 	Open outPath For Output As fileNum
@@ -145,6 +145,15 @@ Function ToIso(d As String) As String
 	Dim p As Variant
 	p = Split(d, "/")
 	ToIso = p(0) &amp; "-" &amp; Right("0" &amp; p(1), 2) &amp; "-" &amp; Right("0" &amp; p(2), 2) &amp; "T00:00:00+08:00"
+End Function
+
+Function LogPath(agentName As String) As String
+	' log 歸檔：寫進專案 test-logs\&lt;agent&gt;\ 分類存放（時間戳檔名、不互相覆蓋）；
+	' 資料夾不存在（如在別台機器跑）則 fallback 到 %TEMP%
+	Dim logDir As String
+	logDir = "C:\Users\siaob\code\20260716-dql-view-date-column-cast-research\test-logs\" &amp; agentName
+	If Dir$(logDir, 16) = "" Then logDir = Environ("TEMP")
+	LogPath = logDir &amp; "\" &amp; agentName &amp; "_" &amp; Format$(Now, "yyyymmdd-hhnnss") &amp; ".txt"
 End Function
 
 Function ExecuteWithCatalogRepair(dq As NotesDominoQuery, query As String) As NotesDocumentCollection
