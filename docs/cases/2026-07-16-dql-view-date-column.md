@@ -71,6 +71,10 @@
 **改過直欄公式之後**，記得讓 view index 重建，並更新 design catalog：
 `load updall <db path> -d`（初次建立用 `-e`）。沒更新的話，view 直欄語法可能失敗或用到舊的直欄定義。
 
+> ✅ **實測（Domino，2026-07-16 單點測試）**：DB 完全沒建 catalog 時，所有 `'view'.column` 查詢（含 Explain）在驗證階段就硬報錯——錯誤碼 4854：
+> `Error validating view column name - ['view'.$123] .. invalid view name or database needs to be cataloged via updall -e`
+> 沒有默默 fallback、沒有部分結果。**排查判斷式**：查詢「有結果但部分缺漏」＝ catalog 存在，問題出在型別/時區/selection；「整批報 4854」＝ 缺 catalog 或 view 設計變更後沒跑 `updall -d`。
+
 ---
 
 ## 為什麼「轉成日期反而有些抓得到有些沒抓到」
