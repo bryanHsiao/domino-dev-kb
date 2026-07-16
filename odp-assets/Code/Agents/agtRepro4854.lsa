@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='utf-8'?>
+<agent name='agtRepro4854' xmlns='http://www.lotus.com/dxl' version='12.0' maintenanceversion='2.5'
+ replicaid='REPLACE_WITH_DB_REPLICAID' hide='v3' publicaccess='false' designerversion='8.5.3'>
+<trigger type='actionsmenu'/>
+<documentset type='runonce'/><code event='options'><lotusscript>Option Public
+Option Declare
+
+Dim fileNum As Integer
+</lotusscript></code><code event='initialize'><lotusscript>Sub Initialize
+	On Error Goto errorHandler
+	Dim session As New NotesSession
+	Dim db As NotesDatabase
+	Set db = session.CurrentDatabase
+
+	Dim outPath As String
+	outPath = Environ("TEMP") &amp; "\dql-4854-repro.txt"
+	fileNum = Freefile
+	Open outPath For Output As fileNum
+
+	Print #fileNum, "DQL 錯誤重現實驗 — " &amp; Format$(Now, "yyyy/mm/dd hh:nn:ss")
+	Print #fileNum, "資料庫：[" &amp; db.Server &amp; "] " &amp; db.FilePath
+	Print #fileNum, ""
+	Print #fileNum, "目的：刻意下錯的查詢，觀察「使用者看到的錯誤文字（Error$）」vs「程式看到的錯誤碼（Err）」"
+	Print #fileNum, "錯誤碼對照（lsxbeerr.lss）：4852=INTERNAL, 4853=PLANNING, 4854=EXECUTION, 4855=TIMEOUT, 4856=NOQUERY"
+
+	' 情境 1：@dt 只給日期打 view 直欄（診斷階梯第 3 層）
+	Call RunBroken(db, "情境1. @dt 只給日期 vs view 直欄（預期：Partial TIMEDATEs NOT supported）", _
+	"in ('vwTestTyped') and 'vwTestTyped'.$123 &gt;= @dt('2024-01-01')")
+
+	' 情境 2：查一個不存在的 view（診斷階梯第 1 層的訊息）
+	Call RunBroken(db, "情境2. 不存在的 view（預期：invalid view name or database needs to be cataloged）", _
+	"'noSuchView'.$123 &gt;= '2024/01/01'")
+
+	' 情境 3：語法寫壞（預期：Query is not understandable 類）
+	Call RunBroken(db, "情境3. 語法錯誤 and and（觀察 Err 是 4853 planning 還是 4854）", _
+	"in ('vwTestTyped') and and 'vwTestTyped'.$123 &gt;= '2024/01/01'")
+
+	' 情境 4：空查詢字串（預期：4856 NOQUERY）
+	Call RunBroken(db, "情境4. 空查詢字串（預期 Err=4856）", "")
+
+	' 情境 5：對照組 — 正確查詢（證明環境本身沒問題）
+	Call RunBroken(db, "情境5. 對照組：正確查詢（應成功、無錯誤）", _
+	"in ('vwTestTyped') and 'vwTestTyped'.$123 &gt;= @dt('2024-01-01T00:00:00+08:00') and 'vwTestTyped'.$123 &lt; @dt('2024-02-01T00:00:00+08:00')")
+
+	Print #fileNum, ""
+	Print #fileNum, "=== 延伸實驗（手動）==="
+	Print #fileNum, "想看「沒有 error handler 時使用者看到什麼」：把本 agent 的 On Error Goto errorHandler"
+	Print #fileNum, "與 RunBroken 內的 On Error Goto brokenErr 都註解掉再跑一次——"
+	Print #fileNum, "Notes 會直接跳 modal，內容只有 Error$ 的文字、完全看不到 4854 這個數字。"
+
+	Close fileNum
+	Msgbox "重現完成，結果已寫入：" &amp; outPath, 64, "agtRepro4854"
+	Exit Sub
+errorHandler:
+	Msgbox "錯誤 " &amp; Cstr(Err) &amp; "：" &amp; Error$ &amp; "（第 " &amp; Cstr(Erl) &amp; " 行）", 16, "agtRepro4854 錯誤"
+	Exit Sub
+End Sub
+
+Sub RunBroken(db As NotesDatabase, label As String, query As String)
+	On Error Goto brokenErr
+	Dim dq As NotesDominoQuery
+	Dim coll As NotesDocumentCollection
+	Set dq = db.CreateDominoQuery()
+	Print #fileNum, ""
+	Print #fileNum, "==================================================="
+	Print #fileNum, "=== " &amp; label
+	Print #fileNum, "Query: [" &amp; query &amp; "]"
+	Set coll = dq.Execute(query)
+	Print #fileNum, "→ 沒有錯誤，命中 " &amp; Cstr(coll.Count) &amp; " 筆"
+	Exit Sub
+brokenErr:
+	Print #fileNum, "→ 程式看到的錯誤碼 Err = " &amp; Cstr(Err) &amp; "（" &amp; ErrName(Err) &amp; "）"
+	Print #fileNum, "→ 使用者看到的錯誤文字 Error$ 全文如下："
+	Print #fileNum, "---------------------------------------------------"
+	Print #fileNum, Error$
+	Print #fileNum, "---------------------------------------------------"
+	Exit Sub
+End Sub
+
+Function ErrName(code As Long) As String
+	Select Case code
+	Case 4852 : ErrName = "lsERR_NOTES_DQUERY_INTERNAL"
+	Case 4853 : ErrName = "lsERR_NOTES_DQUERY_PLANNING"
+	Case 4854 : ErrName = "lsERR_NOTES_DQUERY_EXECUTION"
+	Case 4855 : ErrName = "lsERR_NOTES_DQUERY_TIMEOUT"
+	Case 4856 : ErrName = "lsERR_NOTES_DQUERY_NOQUERY"
+	Case Else : ErrName = "非 DQL 家族錯誤碼"
+	End Select
+End Function</lotusscript></code>
+</agent>
