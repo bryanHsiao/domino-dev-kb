@@ -84,14 +84,35 @@ Sub RunQuery(db As NotesDatabase, label As String, query As String)
 	Print #fileNum, "命中 " &amp; Cstr(coll.Count) &amp; " 筆："
 	Set doc = coll.GetFirstDocument
 	Do Until doc Is Nothing
-		Print #fileNum, "  - " &amp; doc.GetItemValueString("Subject")
+		Print #fileNum, "  - " &amp; DescribeDoc(doc)
 		Set doc = coll.GetNextDocument(doc)
 	Loop
 	Exit Sub
 queryError:
-	Print #fileNum, "  ** 查詢錯誤 " &amp; Cstr(Err) &amp; "：" &amp; Error$
+	Print #fileNum, "  ** 查詢錯誤 " &amp; Cstr(Err) &amp; "：" &amp; Error$ &amp; "（第 " &amp; Cstr(Erl) &amp; " 行）"
 	Exit Sub
 End Sub
+
+Function DescribeDoc(doc As NotesDocument) As String
+	' 安全讀值：GetItemValueString 遇非文字 item 會丟 error 13，改用 GetItemValue + Cstr
+	On Error Goto descError
+	Dim s As String
+	Dim v As Variant
+	If doc.HasItem("Subject") Then
+		s = Cstr(doc.GetItemValue("Subject")(0))
+	Else
+		s = "(無 Subject)"
+	End If
+	If doc.HasItem("DocDate") Then
+		v = doc.GetItemValue("DocDate")
+		s = s &amp; " | DocDate=" &amp; Cstr(v(0)) &amp; " (" &amp; Typename(v(0)) &amp; ")"
+	End If
+	DescribeDoc = s
+	Exit Function
+descError:
+	DescribeDoc = "(讀值錯誤 " &amp; Cstr(Err) &amp; "：" &amp; Error$ &amp; "，NoteID=" &amp; doc.NoteID &amp; ")"
+	Exit Function
+End Function
 
 Sub TrySetRefreshViews(dq As NotesDominoQuery)
 	' RefreshViews：查詢時強制重整 view index。用獨立 error trap 包住，
