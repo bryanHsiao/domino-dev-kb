@@ -71,9 +71,15 @@
 **改過直欄公式之後**，記得讓 view index 重建，並更新 design catalog：
 `load updall <db path> -d`（初次建立用 `-e`）。沒更新的話，view 直欄語法可能失敗或用到舊的直欄定義。
 
-> ✅ **實測（Domino，2026-07-16 單點測試）**：DB 完全沒建 catalog 時，所有 `'view'.column` 查詢（含 Explain）在驗證階段就硬報錯——錯誤碼 4854：
-> `Error validating view column name - ['view'.$123] .. invalid view name or database needs to be cataloged via updall -e`
-> 沒有默默 fallback、沒有部分結果。**排查判斷式**：查詢「有結果但部分缺漏」＝ catalog 存在，問題出在型別/時區/selection；「整批報 4854」＝ 缺 catalog 或 view 設計變更後沒跑 `updall -d`。
+> ✅ **實測（Domino，2026-07-16 單點測試）**：`'view'.column` 查詢失敗時都是錯誤碼 4854，但訊息分層、可直接對症下藥——
+>
+> | 層 | 4854 錯誤訊息（原文） | 病因 / 解法 |
+> |---|---|---|
+> | 1. 無 design catalog | `Error validating view column name - ['view'.$123] .. invalid view name or database needs to be cataloged via updall -e` | 跑 `load updall <db> -e`（view 設計變更後跑 `-d`） |
+> | 2. view index 沒建過 | `View never built [viewName] - query term will fail, aborting` | view 建好後從未被開啟過；開一次 view 或 `load updall <db> -t <view>` 建 index，DQL 不會代建 |
+> | 3. @dt 只給日期 | `Partial TIMEDATEs NOT supported with view column lookup, specify a full TIMEDATE` | 官方規則的 runtime 實證；給完整 timestamp（含時間與時區） |
+>
+> 三層都是**硬報錯、不會默默 fallback 或給部分結果**。**排查判斷式**：查詢「有結果但部分缺漏」＝ 上面三層都過了，問題出在型別混雜/時區/view selection 篩範圍。
 
 ---
 
