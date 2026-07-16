@@ -93,6 +93,15 @@ Option Declare
 	Print #fileNum, "  數字很大 = DQL 放棄索引、改成一份一份翻文件（效能警訊，通常是直欄不符合索引條件）。"
 	Print #fileNum, "- Entries = " &amp; GrabAfter(explainTxt, "Entries ") &amp; "：在 view 索引裡掃過的資料列數。"
 	Print #fileNum, "- FoundDocs = " &amp; GrabAfter(explainTxt, "FoundDocs ") &amp; "：符合全部條件的文件數（= 命中筆數）。"
+	If coll.Count = 0 Then
+		Print #fileNum, ""
+		Print #fileNum, "⚠ 命中 0 筆——最常見的原因排查順序："
+		Print #fileNum, "1. 比較型別跟直欄輸出型別不符（DQL 不自動轉型、也不報錯）："
+		Print #fileNum, "   直欄輸出文字 → 要選文字比較；直欄輸出日期時間 → 要選 @dt。選錯必定 0 筆。"
+		Print #fileNum, "2. 區間內真的沒資料（換個確定有資料的區間對照）。"
+		Print #fileNum, "3. view 的 selection formula 把文件篩掉了（非 SELECT @All 的 view 要注意）。"
+		Print #fileNum, "4. 直欄是混型（部分文件文字、部分日期）→ 單一型別的查詢只能抓到其中一半。"
+	End If
 	Print #fileNum, ""
 	Print #fileNum, "下方 Explain 逐段怎麼看："
 	Print #fileNum, "- 縮排結構 = 執行計畫的樹狀圖：0. AND 是總節點，底下每個 1. 是一個查詢條件。"
@@ -107,10 +116,13 @@ Option Declare
 	Print #fileNum, explainTxt
 	Close fileNum
 
+	Dim hint As String
+	If coll.Count = 0 Then
+		hint = Chr(10) &amp; Chr(10) &amp; "⚠ 0 筆最常見原因：比較型別與直欄輸出型別不符（DQL 不自動轉型也不報錯）。詳見結果檔的排查清單。"
+	End If
 	Msgbox "Query:" &amp; Chr(10) &amp; query &amp; Chr(10) &amp; Chr(10) &amp; _
-	"命中筆數：" &amp; Cstr(coll.Count) &amp; Chr(10) &amp; Chr(10) &amp; _
-	"完整成本計畫（Explain）已寫入：" &amp; Chr(10) &amp; outPath &amp; Chr(10) &amp; Chr(10) &amp; _
-	"判讀重點：ScannedDocs 0 = 純走索引；各節點看 estimated cost 與 Exec msecs", 64, "agtQueryCount"
+	"命中筆數：" &amp; Cstr(coll.Count) &amp; hint &amp; Chr(10) &amp; Chr(10) &amp; _
+	"完整成本計畫（Explain + 白話解讀）已寫入：" &amp; Chr(10) &amp; outPath, 64, "agtQueryCount"
 	Exit Sub
 errorHandler:
 	If Err = 4854 Then
