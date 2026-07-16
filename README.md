@@ -1,0 +1,27 @@
+# Domino 開發案例知識庫
+
+記錄 HCL Domino / DQL / LotusScript 開發過程中踩過的坑、查證過的官方文件結論，供團隊回饋與日後查閱。
+
+## 案例索引
+
+| 日期 | 案例 | 一句話結論 |
+|---|---|---|
+| 2026-07-16 | [DQL 用 view 日期直欄做範圍搜尋要不要轉型](docs/cases/2026-07-16-dql-view-date-column.md) | DQL 不自動轉型；直欄輸出型別必須全部文件一致，且與查詢詞型別相同。`@dt` 要完整 timestamp + `+08:00` |
+
+## 新增案例
+
+在 `docs/cases/` 下新增 `YYYY-MM-DD-簡短主題.md`，格式：症狀 → 官方文件佐證（附連結與原文引用）→ 根因 → 正確做法 → 一句話總結，並更新 `docs/index.md` 的索引表與 `mkdocs.yml` 的 `nav`。
+
+## 本機預覽
+
+```powershell
+pip install -r requirements.txt
+python -m mkdocs serve   # http://127.0.0.1:8000
+```
+
+## 發佈到 GitHub Pages
+
+1. 在 GitHub 建立 repo 後：`git remote add origin <repo-url>`、`git push -u origin main`
+2. push 後 GitHub Actions（`.github/workflows/deploy.yml`）會自動建置並推到 `gh-pages` 分支
+3. 到 repo 的 **Settings → Pages**，Source 選 `Deploy from a branch`、Branch 選 `gh-pages`
+4. 把 `mkdocs.yml` 裡的 `site_url` 改成實際的 Pages 網址

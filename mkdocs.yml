@@ -1,0 +1,46 @@
+site_name: Domino 開發案例知識庫
+site_description: HCL Domino / DQL / LotusScript 開發案例查證紀錄
+site_url: https://example.github.io/domino-dev-kb/  # 建好 GitHub repo 後改成實際網址
+
+theme:
+  name: material
+  language: zh-TW
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle:
+        icon: material/weather-night
+        name: 切換深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: 切換淺色模式
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.expand
+    - toc.follow
+    - search.highlight
+    - content.code.copy
+
+nav:
+  - 首頁: index.md
+  - 案例:
+      - DQL view 日期直欄範圍搜尋: cases/2026-07-16-dql-view-date-column.md
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
