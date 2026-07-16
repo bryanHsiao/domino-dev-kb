@@ -50,6 +50,11 @@ in ('vwTestTyped') and ...                        ← ③ 原查詢字串回顯
 
 ## Design catalog 生命週期的坑
 
+先搞清楚 catalog 是什麼（依 [DQL 正式環境筆記](https://bryanhsiao.github.io/domino-news/posts/dql-production/)）：
+
+- **Domino 11+ 的 catalog 是 NSF 內的持久 state**——「Design Catalog 移到 NSF 內部，存在隱藏的設計元素裡」，「不是 in-memory state。Server 重啟、HTTP task 重啟、JVM 重啟都還在」，「一個 NSF 一輩子只需要建立 catalog 一次，之後永久存在」。（Domino 10.x 是資料目錄下的獨立檔 `GQFdsgn.cat`）
+- 因為是 NSF 內的持久物件，**損毀也是持久的**——本案 `updall -d` 失敗後的 `Named Object corrupt` 狀態不會因重啟消失，必須明確重建才會好。
+
 實測時間軸（六輪測試濃縮）：
 
 | 時間點 | 操作 | 結果 |
@@ -64,7 +69,7 @@ in ('vwTestTyped') and ...                        ← ③ 原查詢字串回顯
 
 - 官方文件說 view 設計變更後跑 `updall -d` 即可，但實測 `-d` 在 catalog 已過期的狀態下**可能直接損毀失敗**，此時要用 `-e` 重建。
 - catalog 半殘時**不是全部報錯**——有的 view 查得到、有的報錯、有的回 0 筆。正式環境若曾在建 catalog 後改過 view 設計（很常見），這就是「時好時壞」的高嫌疑成因。
-- **維運建議**：把「改 view 設計 → 跑 `updall -d`、失敗就 `-e`」納入部署 SOP；DQL 有用到 `'view'.column` 語法的 DB 尤其要注意。
+- **維運建議（程式內自動處理，優於人工 SOP）**：`NotesDominoQuery` 有 `RefreshDesignCatalog` / `RebuildDesignCatalog` 屬性，照 [DQL 正式環境筆記](https://bryanhsiao.github.io/domino-news/posts/dql-production/)的模式——查詢前設 `RefreshDesignCatalog = True`（catalog 是新的時近乎零成本），若吃到含 `needs to be cataloged via updall -e` 的 4854，改設 `RebuildDesignCatalog = True` 重試一次。注意 **Refresh 無法 bootstrap 全新 NSF**，缺 catalog 時必須用 Rebuild。這樣就不依賴人工 updall；console 的 `updall -d` / `-e` 留作手動維運備援。
 
 ## 查詢回 0 筆且無錯誤時的檢查清單
 
@@ -108,5 +113,6 @@ in ('vwTestTyped') and ...                        ← ③ 原查詢字串回顯
 
 - [Design catalog — HCL Domino Designer 14.5.1](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_design_catalog.html)
 - [DQL syntax — HCL Domino Designer 14.5.1](https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_syntax.html)
+- [DQL 正式環境筆記（catalog 儲存機制與 Refresh/Rebuild 模式）— domino-news](https://bryanhsiao.github.io/domino-news/posts/dql-production/)
 - [第一篇案例：DQL view 日期直欄型別查證](2026-07-16-dql-view-date-column.md)
 - 測試素材：repo 的 `odp-assets/`（4 views + 2 agents，可重複部署驗證）

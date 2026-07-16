@@ -5,6 +5,8 @@
 <documentset type='runonce'/><code event='options'><lotusscript>Option Public
 Option Declare
 %Include "lsconst.lss"
+
+Dim gCatalogRebuilt As Boolean
 </lotusscript></code><code event='initialize'><lotusscript>Sub Initialize
 	On Error Goto errorHandler
 	Dim session As New NotesSession
@@ -69,7 +71,7 @@ Option Declare
 	Set dq = db.CreateDominoQuery()
 	dq.RefreshViews = True
 	Dim coll As NotesDocumentCollection
-	Set coll = dq.Execute(query)
+	Set coll = ExecuteWithCatalogRepair(dq, query)
 	Dim explainTxt As String
 	explainTxt = dq.Explain(query)
 
@@ -83,6 +85,7 @@ Option Declare
 	Print #fileNum, "資料庫：[" &amp; db.Server &amp; "] " &amp; db.FilePath
 	Print #fileNum, "Query: " &amp; query
 	Print #fileNum, "命中筆數：" &amp; Cstr(coll.Count)
+	If gCatalogRebuilt Then Print #fileNum, "（本次查詢偵測到 design catalog 缺失/損毀，已自動 Rebuild 後重試成功）"
 	Print #fileNum, ""
 	Print #fileNum, "=== 白話解讀 ==="
 	Print #fileNum, "你問的問題：在「" &amp; viewName &amp; "」這個 view 裡，找「" &amp; colName &amp; "」欄位值落在 " &amp; dtStart &amp; "（含）～ " &amp; dtEnd &amp; "（不含）的文件。"
@@ -142,6 +145,26 @@ Function ToIso(d As String) As String
 	Dim p As Variant
 	p = Split(d, "/")
 	ToIso = p(0) &amp; "-" &amp; Right("0" &amp; p(1), 2) &amp; "-" &amp; Right("0" &amp; p(2), 2) &amp; "T00:00:00+08:00"
+End Function
+
+Function ExecuteWithCatalogRepair(dq As NotesDominoQuery, query As String) As NotesDocumentCollection
+	' 正式環境模式（見 domino-news「DQL 正式環境筆記」）：
+	' 查詢前 RefreshDesignCatalog（catalog 是新的時近乎零成本）；
+	' 吃到「needs to be cataloged」的 4854 → RebuildDesignCatalog 重試一次。
+	' 注意 Refresh 無法 bootstrap 全新 NSF，缺 catalog 必須 Rebuild。
+	Dim rebuilt As Boolean
+	On Error Goto execFail
+	dq.RefreshDesignCatalog = True
+	Set ExecuteWithCatalogRepair = dq.Execute(query)
+	Exit Function
+execFail:
+	If Err = 4854 And Not rebuilt And Instr(Error$, "needs to be cataloged") &gt; 0 Then
+		rebuilt = True
+		gCatalogRebuilt = True
+		dq.RebuildDesignCatalog = True
+		Resume 0
+	End If
+	Error Err, Error$
 End Function
 
 Function GrabAfter(src As String, tag As String) As String
