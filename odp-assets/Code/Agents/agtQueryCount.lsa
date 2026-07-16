@@ -84,7 +84,26 @@ Option Declare
 	Print #fileNum, "Query: " &amp; query
 	Print #fileNum, "命中筆數：" &amp; Cstr(coll.Count)
 	Print #fileNum, ""
-	Print #fileNum, "=== Explain（成本資訊）==="
+	Print #fileNum, "=== 白話解讀 ==="
+	Print #fileNum, "你問的問題：在「" &amp; viewName &amp; "」這個 view 裡，找「" &amp; colName &amp; "」欄位值落在 " &amp; dtStart &amp; "（含）～ " &amp; dtEnd &amp; "（不含）的文件。"
+	Print #fileNum, "DQL 的回答：命中 " &amp; Cstr(coll.Count) &amp; " 筆，實際執行 " &amp; GrabAfter(explainTxt, "Exec ") &amp; " 毫秒。"
+	Print #fileNum, ""
+	Print #fileNum, "三個關鍵數字（取自下方 Explain 第一行的總計）："
+	Print #fileNum, "- ScannedDocs = " &amp; GrabAfter(explainTxt, "ScannedDocs ") &amp; "：全庫翻閱的文件數。0 = 完全靠 view 索引，效能最好；"
+	Print #fileNum, "  數字很大 = DQL 放棄索引、改成一份一份翻文件（效能警訊，通常是直欄不符合索引條件）。"
+	Print #fileNum, "- Entries = " &amp; GrabAfter(explainTxt, "Entries ") &amp; "：在 view 索引裡掃過的資料列數。"
+	Print #fileNum, "- FoundDocs = " &amp; GrabAfter(explainTxt, "FoundDocs ") &amp; "：符合全部條件的文件數（= 命中筆數）。"
+	Print #fileNum, ""
+	Print #fileNum, "下方 Explain 逐段怎麼看："
+	Print #fileNum, "- 縮排結構 = 執行計畫的樹狀圖：0. AND 是總節點，底下每個 1. 是一個查詢條件。"
+	Print #fileNum, "- 「IN ... View NoteID Extract」：第一步，把 view 裡的文件清單抓出來當搜尋範圍。"
+	Print #fileNum, "- 「View Column Search」：用 view 直欄索引做範圍搜尋——看到它就代表有走索引。"
+	Print #fileNum, "- 「estimated cost」：執行前的預估成本，DQL 拿它決定條件的執行順序（成本小的先跑）。"
+	Print #fileNum, "  它是預估值、不是實際耗時；實際耗時看 Prep / Exec msecs。"
+	Print #fileNum, "- 「(0 cost - coupled with earlier sibling)」：這個條件跟上一個條件合併一趟做完，所以顯示 0 成本。"
+	Print #fileNum, "- 日期顯示成 ...Z（UTC）：Explain 會把 @dt 的 +08:00 換算成 UTC 顯示，屬正常現象、不是查錯時區。"
+	Print #fileNum, ""
+	Print #fileNum, "=== Explain（原始成本資訊）==="
 	Print #fileNum, explainTxt
 	Close fileNum
 
@@ -111,5 +130,25 @@ Function ToIso(d As String) As String
 	Dim p As Variant
 	p = Split(d, "/")
 	ToIso = p(0) &amp; "-" &amp; Right("0" &amp; p(1), 2) &amp; "-" &amp; Right("0" &amp; p(2), 2) &amp; "T00:00:00+08:00"
+End Function
+
+Function GrabAfter(src As String, tag As String) As String
+	' 從 Explain 文字抓 tag 後面的數字（取第一次出現，即總計那行）
+	Dim p As Long
+	Dim q As Long
+	Dim c As String
+	p = Instr(src, tag)
+	If p = 0 Then
+		GrabAfter = "?"
+		Exit Function
+	End If
+	p = p + Len(tag)
+	q = p
+	Do While q &lt;= Len(src)
+		c = Mid$(src, q, 1)
+		If Instr("0123456789.", c) = 0 Then Exit Do
+		q = q + 1
+	Loop
+	GrabAfter = Mid$(src, p, q - p)
 End Function</lotusscript></code>
 </agent>
