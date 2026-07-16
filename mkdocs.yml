@@ -1,6 +1,8 @@
 site_name: Domino 開發案例知識庫
 site_description: HCL Domino / DQL / LotusScript 開發案例查證紀錄
 site_url: https://bryanhsiao.github.io/domino-dev-kb/
+repo_url: https://github.com/bryanHsiao/domino-dev-kb
+repo_name: bryanHsiao/domino-dev-kb
 
 theme:
   name: material
