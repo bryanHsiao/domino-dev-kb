@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<view name='vwTestRealClone' xmlns='http://www.lotus.com/dxl' version='12.0' showinmenu='true' publicaccess='false' designerversion='8.5.3'>
+<code event='selection'><formula>SELECT Form = "frmDoc"</formula></code>
+<column sort='ascending' itemname='Dept' width='12' resizable='true' categorized='true' twisties='true'>
+<columnheader title='機關(分類欄,仿真實view)'><font size='9pt' style='bold'/></columnheader>
+</column>
+<column sort='descending' resort='ascending' itemname='$123' width='16' resizable='true' sortnocase='true'>
+<code event='value'><formula>@If(@IsText(DocDate); DocDate; @Text(@Date(DocDate)))</formula></code>
+<columnheader title='來文日期(仿真實:遞減+可點升冪)'><font size='9pt' style='bold'/></columnheader>
+</column>
+<column itemname='Subject' width='48' resizable='true'>
+<columnheader title='Subject'><font size='9pt' style='bold'/></columnheader>
+</column>
+</view>

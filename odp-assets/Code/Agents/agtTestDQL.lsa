@@ -46,6 +46,12 @@ Dim fileNum As Integer
 	Call RunQuery(db, "F. @dt +08:00 vs 混型直欄 vwTestMixed（重現症狀：預期 T7/T8 消失）", _
 	"in ('vwTestMixed') and 'vwTestMixed'.$123 &gt;= @dt('2024-01-01T00:00:00+08:00') and 'vwTestMixed'.$123 &lt; @dt('2024-02-01T00:00:00+08:00')")
 
+	' H. 仿真實 view 設定：selection 非 @All + 分類最左欄 + $123 遞減排序
+	'    官方：'view'.column 語法要求 view 的 selection 必須是 SELECT @All，
+	'    不符時 "the query fails with a return code" — 驗證真實環境到底是報錯還是部分命中
+	Call RunQuery(db, "H. 文字比較 vs 仿真實 view vwTestRealClone（非@All selection，預期報錯或行為異常）", _
+	"in ('vwTestRealClone') and 'vwTestRealClone'.$123 &gt;= '2024/01/01' and 'vwTestRealClone'.$123 &lt; '2024/02/01'")
+
 	' G. Explain：確認查詢計畫有走 view index
 	Call RunExplain(db, "G. Explain（查詢 E 的執行計畫）", _
 	"in ('vwTestTyped') and 'vwTestTyped'.$123 &gt;= @dt('2024-01-01T00:00:00+08:00') and 'vwTestTyped'.$123 &lt; @dt('2024-02-01T00:00:00+08:00')")

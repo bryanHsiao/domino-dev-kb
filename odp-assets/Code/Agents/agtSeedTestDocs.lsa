@@ -41,6 +41,7 @@ Sub CreateDateDoc(db As NotesDatabase, subject As String, y As Integer, m As Int
 	Set doc = db.CreateDocument
 	Call doc.ReplaceItemValue("Form", "frmDoc")
 	Call doc.ReplaceItemValue("TestSeed", "1")
+	Call doc.ReplaceItemValue("Dept", "測試機關")
 	Call doc.ReplaceItemValue("Subject", subject)
 	Call doc.ReplaceItemValue("DocDate", dt)
 	Call doc.Save(True, False)
@@ -51,6 +52,7 @@ Sub CreateTextDoc(db As NotesDatabase, subject As String, textValue As String)
 	Set doc = db.CreateDocument
 	Call doc.ReplaceItemValue("Form", "frmDoc")
 	Call doc.ReplaceItemValue("TestSeed", "1")
+	Call doc.ReplaceItemValue("Dept", "測試機關")
 	Call doc.ReplaceItemValue("Subject", subject)
 	Call doc.ReplaceItemValue("DocDate", textValue)
 	Call doc.Save(True, False)
