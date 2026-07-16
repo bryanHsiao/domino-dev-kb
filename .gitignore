@@ -1,3 +1,6 @@
 site/
 .cache/
 __pycache__/
+
+# 真實系統的 ODP 設計元件（含機關內部表單/view），不推上 public repo
+odp/
