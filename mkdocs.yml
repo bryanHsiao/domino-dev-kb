@@ -32,7 +32,7 @@ nav:
   - 首頁: index.md
   - 案例:
       - DQL view 日期直欄範圍搜尋: cases/2026-07-16-dql-view-date-column.md
-      - DQL 4854 診斷階梯與 design catalog: cases/2026-07-16-dql-4854-diagnostic-ladder.md
+      - DQL「Domino Query 執行時錯誤」診斷階梯: cases/2026-07-16-dql-4854-diagnostic-ladder.md
 
 markdown_extensions:
   - admonition

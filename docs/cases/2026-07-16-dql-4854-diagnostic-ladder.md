@@ -1,4 +1,4 @@
-# DQL view 查詢報錯 4854 與默默回 0 筆：診斷階梯與 design catalog 生命週期
+# DQL view 查詢「Domino Query 執行時錯誤」與默默回 0 筆：診斷階梯與 design catalog 生命週期
 
 > 案例日期：2026-07-16
 > 來源：[DQL view 日期直欄型別案例](2026-07-16-dql-view-date-column.md) 單點測試過程中的副產物——六輪測試踩出一條完整的故障診斷路徑
@@ -8,15 +8,15 @@
 
 ## 結論（TL;DR）
 
-1. `'view'.column` 語法失敗時**錯誤碼一律是 4854**，但**錯誤訊息分三層**，每層對症下藥的方法不同（見下方診斷階梯）。
+1. `'view'.column` 語法失敗時，畫面/日誌上看到的是「**Domino Query 執行時錯誤:**」開頭的訊息文字——**診斷靠訊息內容分層**，每層對症下藥的方法不同（見下方診斷階梯）。程式端捕捉到的錯誤碼一律是 4854，但那只有印出 `Err` 的 handler 才看得到、且不帶診斷資訊。
 2. **view 設計變更後 `updall -d` 可能直接失敗**（`Named Object corrupt`），catalog 半殘時查詢行為會變得**不一致**：有的 view 報錯、有的默默回 0 筆——正是「有些抓得到有些沒抓到，蠻怪的」的另一種成因。
 3. 查詢**回 0 筆且無錯誤**時不要急著怪語法，照下面的檢查清單排查：資料是否存在 → view index 是否需要 refresh → catalog 是否過期。
 
 ---
 
-## 4854 是什麼、從哪來
+## 你看到的是訊息文字，不是 4854
 
-`4854` 是 **LotusScript 層的統包錯誤碼**，定義在 Notes/Domino 安裝目錄的 `lsxbeerr.lss`（實機 12.0.2 摘錄）：
+查詢失敗時，**使用者實際看到的**是「Domino Query 執行時錯誤:」開頭的多行文字（無 handler 時 Notes 跳的 modal、或 handler 印出的 `Error$`）。「4854」這個數字**只存在於程式端的 `Err`**——是 LotusScript 層的統包錯誤碼，定義在 Notes/Domino 安裝目錄的 `lsxbeerr.lss`（實機 12.0.2 摘錄）：
 
 ```lotusscript
 Public Const lsERR_NOTES_DQUERY_INTERNAL  = 4852   ' DQL 內部錯誤
@@ -38,9 +38,9 @@ in ('vwTestTyped') and ...                        ← ③ 原查詢字串回顯
 
 **實務守則**：error handler 一定要印 `Error$` 全文（只印 `Err` 等於什麼都沒印）；下方診斷階梯的分層依據就是②那一行。
 
-## 4854 三層診斷階梯（實測原文）
+## 錯誤訊息三層診斷階梯（實測原文）
 
-| 層 | 4854 錯誤訊息（runtime 原文） | 病因 | 解法 |
+| 層 | 錯誤訊息第②行（runtime 原文） | 病因 | 解法 |
 |---|---|---|---|
 | 1 | `Error validating view column name - ['view'.$123]`<br>`.. invalid view name or database needs to be cataloged via updall -e` | DB 沒有 design catalog | `load updall <db> -e` |
 | 2 | `View never built [viewName] - query term will fail, aborting` | view 建好後**從未被開啟過**、index 不存在——DQL 不會代建 | 開一次 view，或 `load updall <db> -t <view>` |
