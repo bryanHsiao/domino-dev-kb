@@ -1,6 +1,6 @@
 site_name: Domino 開發案例知識庫
 site_description: HCL Domino / DQL / LotusScript 開發案例查證紀錄
-site_url: https://example.github.io/domino-dev-kb/  # 建好 GitHub repo 後改成實際網址
+site_url: https://bryanhsiao.github.io/domino-dev-dql/
 
 theme:
   name: material
