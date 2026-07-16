@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='utf-8'?>
+<agent name='agtSeedTestDocs' xmlns='http://www.lotus.com/dxl' version='12.0' maintenanceversion='2.5'
+ replicaid='REPLACE_WITH_DB_REPLICAID' hide='v3' publicaccess='false' designerversion='8.5.3'>
+<trigger type='actionsmenu'/>
+<documentset type='runonce'/><code event='options'><lotusscript>Option Public
+Option Declare
+</lotusscript></code><code event='initialize'><lotusscript>Sub Initialize
+	On Error Goto errorHandler
+	Dim session As New NotesSession
+	Dim db As NotesDatabase
+	Set db = session.CurrentDatabase
+
+	' 清掉上一輪的測試文件（可重複執行）
+	Dim coll As NotesDocumentCollection
+	Set coll = db.Search(|Form = "frmDoc" &amp; TestSeed = "1"|, Nothing, 0)
+	If coll.Count &gt; 0 Then Call coll.RemoveAll(True)
+
+	' 日期時間型 DocDate（時間皆為本機時間）
+	Call CreateDateDoc(db, "T1 日期型 2024/01/01 00:00（起日邊界）", 2024, 1, 1, 0, 0)
+	Call CreateDateDoc(db, "T2 日期型 2024/01/15 12:00（區間中間）", 2024, 1, 15, 12, 0)
+	Call CreateDateDoc(db, "T3 日期型 2024/01/31 23:30（訖日邊界內）", 2024, 1, 31, 23, 30)
+	Call CreateDateDoc(db, "T4 日期型 2024/02/01 00:00（區間外）", 2024, 2, 1, 0, 0)
+	Call CreateDateDoc(db, "T5 日期型 2023/12/31 20:00（區間外）", 2023, 12, 31, 20, 0)
+	Call CreateDateDoc(db, "T6 日期型 2024/01/01 09:00（區間內）", 2024, 1, 1, 9, 0)
+	' 文字型 DocDate（模擬歷史混型資料）
+	Call CreateTextDoc(db, "T7 文字型 '2024/01/10'（補零文字）", "2024/01/10")
+	Call CreateTextDoc(db, "T8 文字型 '2024/1/5'（未補零文字）", "2024/1/5")
+
+	Msgbox "已建立 8 份測試文件（T1~T8）。請按 F9 重整 view 後執行 agtTestDQL。", 64, "agtSeedTestDocs"
+	Exit Sub
+errorHandler:
+	Msgbox "錯誤 " &amp; Cstr(Err) &amp; "：" &amp; Error$ &amp; "（第 " &amp; Cstr(Erl) &amp; " 行）", 16, "agtSeedTestDocs 錯誤"
+	Exit Sub
+End Sub
+
+Sub CreateDateDoc(db As NotesDatabase, subject As String, y As Integer, m As Integer, d As Integer, hh As Integer, nn As Integer)
+	Dim doc As NotesDocument
+	Dim dt As New NotesDateTime("")
+	' 用 DateNumber/TimeNumber 組值、避免字串解析吃到地區設定
+	dt.LSLocalTime = DateNumber(y, m, d) + TimeNumber(hh, nn, 0)
+	Set doc = db.CreateDocument
+	Call doc.ReplaceItemValue("Form", "frmDoc")
+	Call doc.ReplaceItemValue("TestSeed", "1")
+	Call doc.ReplaceItemValue("Subject", subject)
+	Call doc.ReplaceItemValue("DocDate", dt)
+	Call doc.Save(True, False)
+End Sub
+
+Sub CreateTextDoc(db As NotesDatabase, subject As String, textValue As String)
+	Dim doc As NotesDocument
+	Set doc = db.CreateDocument
+	Call doc.ReplaceItemValue("Form", "frmDoc")
+	Call doc.ReplaceItemValue("TestSeed", "1")
+	Call doc.ReplaceItemValue("Subject", subject)
+	Call doc.ReplaceItemValue("DocDate", textValue)
+	Call doc.Save(True, False)
+End Sub</lotusscript></code>
+</agent>

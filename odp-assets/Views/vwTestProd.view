@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<view name='vwTestProd' xmlns='http://www.lotus.com/dxl' version='12.0' showinmenu='true' publicaccess='false' designerversion='8.5.3'>
+<code event='selection'><formula>SELECT @All</formula></code>
+<column itemname='$123' sort='ascending' width='16' resizable='true'>
+<code event='value'><formula>@If(@IsText(DocDate); DocDate; @Text(@Date(DocDate)))</formula></code>
+<columnheader title='來文日期(現行:地區格式文字)'><font size='9pt' style='bold'/></columnheader>
+</column>
+<column itemname='Subject' width='48' resizable='true'>
+<columnheader title='Subject'><font size='9pt' style='bold'/></columnheader>
+</column>
+</view>

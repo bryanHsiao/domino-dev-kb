@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='utf-8'?>
+<agent name='agtTestDQL' xmlns='http://www.lotus.com/dxl' version='12.0' maintenanceversion='2.5'
+ replicaid='REPLACE_WITH_DB_REPLICAID' hide='v3' publicaccess='false' designerversion='8.5.3'>
+<trigger type='actionsmenu'/>
+<documentset type='runonce'/><code event='options'><lotusscript>Option Public
+Option Declare
+
+Dim fileNum As Integer
+</lotusscript></code><code event='initialize'><lotusscript>Sub Initialize
+	On Error Goto errorHandler
+	Dim session As New NotesSession
+	Dim db As NotesDatabase
+	Set db = session.CurrentDatabase
+
+	Dim outPath As String
+	outPath = Environ("TEMP") &amp; "\dql-test-results.txt"
+	fileNum = Freefile
+	Open outPath For Output As fileNum
+
+	Print #fileNum, "DQL view 日期直欄搜尋測試 — " &amp; Format$(Now, "yyyy/mm/dd hh:nn:ss")
+	Print #fileNum, "資料庫：" &amp; db.FilePath
+	Print #fileNum, "目標區間：2024/01/01（含）～ 2024/02/01（不含）本機時間"
+	Print #fileNum, "理想命中：T1, T2, T3, T6, T7, T8（共 6 筆）；T4, T5 為區間外對照組"
+
+	' A. 現行做法：文字比較 vs @Text(@Date) 地區格式文字直欄
+	Call RunQuery(db, "A. 文字比較 vs 現行直欄 vwTestProd（地區格式文字）", _
+	"in ('vwTestProd') and 'vwTestProd'.$123 &gt;= '2024/01/01' and 'vwTestProd'.$123 &lt; '2024/02/01'")
+
+	' B. 方案A：文字比較 vs 補零文字直欄
+	Call RunQuery(db, "B. 文字比較 vs 補零文字直欄 vwTestTextPadded（方案A）", _
+	"in ('vwTestTextPadded') and 'vwTestTextPadded'.$123 &gt;= '2024/01/01' and 'vwTestTextPadded'.$123 &lt; '2024/02/01'")
+
+	' C. 官方明定：view 搜尋不支援只給日期的 @dt（預期報錯）
+	Call RunQuery(db, "C. @dt 只給日期 vs 日期直欄 vwTestTyped（官方：view 搜尋不支援，預期錯誤）", _
+	"in ('vwTestTyped') and 'vwTestTyped'.$123 &gt;= @dt('2024-01-01') and 'vwTestTyped'.$123 &lt; @dt('2024-02-01')")
+
+	' D. 時區陷阱：完整 timestamp 但不帶時區（= UTC），預期 T1 漏抓、T4 誤抓
+	Call RunQuery(db, "D. @dt 完整 timestamp 不帶時區（=UTC）vs vwTestTyped（預期 T1 漏、T4 誤入）", _
+	"in ('vwTestTyped') and 'vwTestTyped'.$123 &gt;= @dt('2024-01-01T00:00:00Z') and 'vwTestTyped'.$123 &lt; @dt('2024-02-01T00:00:00Z')")
+
+	' E. 方案B 正解：完整 timestamp + +08:00
+	Call RunQuery(db, "E. @dt 完整 timestamp +08:00 vs vwTestTyped（方案B，預期 6 筆全中）", _
+	"in ('vwTestTyped') and 'vwTestTyped'.$123 &gt;= @dt('2024-01-01T00:00:00+08:00') and 'vwTestTyped'.$123 &lt; @dt('2024-02-01T00:00:00+08:00')")
+
+	' F. 重現症狀：同一句 @dt 查詢打在混型直欄上，文字型文件應消失
+	Call RunQuery(db, "F. @dt +08:00 vs 混型直欄 vwTestMixed（重現症狀：預期 T7/T8 消失）", _
+	"in ('vwTestMixed') and 'vwTestMixed'.$123 &gt;= @dt('2024-01-01T00:00:00+08:00') and 'vwTestMixed'.$123 &lt; @dt('2024-02-01T00:00:00+08:00')")
+
+	' G. Explain：確認查詢計畫有走 view index
+	Call RunExplain(db, "G. Explain（查詢 E 的執行計畫）", _
+	"in ('vwTestTyped') and 'vwTestTyped'.$123 &gt;= @dt('2024-01-01T00:00:00+08:00') and 'vwTestTyped'.$123 &lt; @dt('2024-02-01T00:00:00+08:00')")
+
+	Close fileNum
+	Msgbox "測試完成，結果已寫入：" &amp; outPath, 64, "agtTestDQL"
+	Exit Sub
+errorHandler:
+	Msgbox "錯誤 " &amp; Cstr(Err) &amp; "：" &amp; Error$ &amp; "（第 " &amp; Cstr(Erl) &amp; " 行）", 16, "agtTestDQL 錯誤"
+	Exit Sub
+End Sub
+
+Sub RunQuery(db As NotesDatabase, label As String, query As String)
+	On Error Goto queryError
+	Dim dq As NotesDominoQuery
+	Dim coll As NotesDocumentCollection
+	Dim doc As NotesDocument
+	Set dq = db.CreateDominoQuery()
+	Print #fileNum, ""
+	Print #fileNum, "=== " &amp; label
+	Print #fileNum, "Query: " &amp; query
+	Set coll = dq.Execute(query)
+	Print #fileNum, "命中 " &amp; Cstr(coll.Count) &amp; " 筆："
+	Set doc = coll.GetFirstDocument
+	Do Until doc Is Nothing
+		Print #fileNum, "  - " &amp; doc.GetItemValueString("Subject")
+		Set doc = coll.GetNextDocument(doc)
+	Loop
+	Exit Sub
+queryError:
+	Print #fileNum, "  ** 查詢錯誤 " &amp; Cstr(Err) &amp; "：" &amp; Error$
+	Exit Sub
+End Sub
+
+Sub RunExplain(db As NotesDatabase, label As String, query As String)
+	On Error Goto explainError
+	Dim dq As NotesDominoQuery
+	Set dq = db.CreateDominoQuery()
+	Print #fileNum, ""
+	Print #fileNum, "=== " &amp; label
+	Print #fileNum, dq.Explain(query)
+	Exit Sub
+explainError:
+	Print #fileNum, "  ** Explain 錯誤 " &amp; Cstr(Err) &amp; "：" &amp; Error$
+	Exit Sub
+End Sub</lotusscript></code>
+</agent>
