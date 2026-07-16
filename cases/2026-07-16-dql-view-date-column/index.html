@@ -1,0 +1,1118 @@
+
+<!doctype html>
+<html lang="zh-TW" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="HCL Domino / DQL / LotusScript 開發案例查證紀錄">
+      
+      
+      
+        <link rel="canonical" href="https://bryanhsiao.github.io/domino-dev-kb/cases/2026-07-16-dql-view-date-column/">
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+        <link rel="next" href="../2026-07-16-dql-4854-diagnostic-ladder/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>DQL view 日期直欄範圍搜尋 - Domino 開發案例知識庫</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dql-view" class="md-skip">
+          跳轉到
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="頁首">
+    <a href="../.." title="Domino 開發案例知識庫" class="md-header__button md-logo" aria-label="Domino 開發案例知識庫" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Domino 開發案例知識庫
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              DQL view 日期直欄範圍搜尋
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切換深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切換深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切換淺色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切換淺色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜尋" placeholder="搜尋" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="搜尋">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清除" aria-label="清除" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜尋引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/bryanHsiao/domino-dev-kb" title="前往倉庫" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bryanHsiao/domino-dev-kb
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="導覽列" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Domino 開發案例知識庫" class="md-nav__button md-logo" aria-label="Domino 開發案例知識庫" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Domino 開發案例知識庫
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/bryanHsiao/domino-dev-kb" title="前往倉庫" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bryanHsiao/domino-dev-kb
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首頁
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    案例
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    案例
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DQL view 日期直欄範圍搜尋
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DQL view 日期直欄範圍搜尋
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目錄">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目錄
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#tldr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        結論（TL;DR）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        官方文件佐證
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="官方文件佐證">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 查詢值的型別決定搜尋型別（無自動轉型）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. View 搜尋不接受「只有日期」的部分值
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-dt-utc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. @dt 不加時區 = UTC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. View 直欄查詢的前置條件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-select-all-vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. SELECT @All 條件：官方文件 vs 實測（重要修正）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        為什麼「轉成日期反而有些抓得到有些沒抓到」
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        正確做法（二選一，重點是「直欄型別 = 查詢詞型別，且全部文件一致」）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="正確做法（二選一，重點是「直欄型別 = 查詢詞型別，且全部文件一致」）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        方案 A（建議）：直欄固定輸出「補零文字」，查詢用文字比較
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-dt-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        方案 B：直欄統一輸出日期時間，查詢用 @dt 完整 timestamp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        兩個方案共同的收尾步驟
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-07-16domino" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        單點測試實錄（2026-07-16，Domino 伺服器實測）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        參考資料
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2026-07-16-dql-4854-diagnostic-ladder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DQL「Domino Query 執行時錯誤」診斷階梯
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目錄">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目錄
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#tldr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        結論（TL;DR）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        官方文件佐證
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="官方文件佐證">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 查詢值的型別決定搜尋型別（無自動轉型）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. View 搜尋不接受「只有日期」的部分值
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-dt-utc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. @dt 不加時區 = UTC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. View 直欄查詢的前置條件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-select-all-vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. SELECT @All 條件：官方文件 vs 實測（重要修正）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        為什麼「轉成日期反而有些抓得到有些沒抓到」
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        正確做法（二選一，重點是「直欄型別 = 查詢詞型別，且全部文件一致」）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="正確做法（二選一，重點是「直欄型別 = 查詢詞型別，且全部文件一致」）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        方案 A（建議）：直欄固定輸出「補零文字」，查詢用文字比較
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-dt-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        方案 B：直欄統一輸出日期時間，查詢用 @dt 完整 timestamp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        兩個方案共同的收尾步驟
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-07-16domino" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        單點測試實錄（2026-07-16，Domino 伺服器實測）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        參考資料
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="dql-view">DQL 用 View 直欄（日期時間）做範圍搜尋：要不要轉型？<a class="headerlink" href="#dql-view" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>案例日期：2026-07-16
+症狀回報：「直欄轉成日期反而有些抓得到有些沒抓到，蠻怪的」
+相關直欄：<code>$123</code>（來文日期），直欄公式：
+<code>@If(@IsText(DocDate); DocDate; @Text(@Date(DocDate)))</code>
+查詢寫法（LotusScript 組字串）：
+<code>in ('viewName') and 'viewName'.$123 &gt;= '&lt;dtStart&gt;' and 'viewName'.$123 &lt; '&lt;dtEnd&gt;'</code></p>
+</blockquote>
+<hr />
+<h2 id="tldr">結論（TL;DR）<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>DQL 沒有自動轉型</strong>。官方文件明講：Domino 是無型別（typeless）資料模型，<strong>「查詢詞裡給的值是什麼型別，就搜尋什麼型別」</strong>。型別不一致的文件<strong>不會報錯，只是默默查不到</strong> —— 這就是「有些抓得到有些沒抓到」的直接原因。</li>
+<li><code>'view'.$123</code> 這種 view 直欄搜尋，比對的是 <strong>view index 裡該直欄算出來的值</strong>（不是文件欄位本身）。直欄公式若對不同文件輸出不同型別（有的文字、有的日期），就必然出現部分命中。</li>
+<li>本案的直欄公式本身就洩露了病根：<code>@IsText(DocDate)</code> 的存在，代表<strong>底層欄位 DocDate 在部分文件裡是文字、部分是日期時間</strong>（歷史資料混型）。把直欄「轉成日期」後，文字那批文件的直欄值仍是文字，用 <code>@dt(...)</code> 查就漏掉它們。</li>
+<li>另外兩個官方明定的地雷：</li>
+<li><strong>View 搜尋不能用「只有日期」的 @dt 值</strong>，必須給完整 timestamp（含時間）。</li>
+<li><strong>@dt 不加時區位移一律當 UTC(GMT)</strong>。台灣是 +08:00，忘了加會讓邊界日期前後 8 小時的文件跑錯邊。</li>
+</ol>
+<hr />
+<h2 id="_1">官方文件佐證<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<h3 id="1">1. 查詢值的型別決定搜尋型別（無自動轉型）<a class="headerlink" href="#1" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>"Domino features a typeless data model where any type of data can be stored in any field. In a DQL query, <strong>the type of data searched for is defined by the type of data specified in the query term</strong>."</p>
+<p>"Use a single quote (') to force DQL processing to interpret arguments as <strong>text rather than date/times or numerals</strong>."</p>
+</blockquote>
+<p>— <a href="https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_syntax.html">DQL syntax（HCL Domino Designer 14.5.1）</a></p>
+<p>意思是：<code>'2024/01/01'</code>（單引號）= 搜文字；<code>@dt('2024-01-01T00:00:00+08:00')</code> = 搜日期時間。存的值型別跟查詢詞型別不同，就不會被比對到。</p>
+<h3 id="2-view">2. View 搜尋不接受「只有日期」的部分值<a class="headerlink" href="#2-view" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>"<strong>Partial date values cannot be found using view searching.</strong>"</p>
+<p>（解法：view 搜尋要給完整值，例如 <code>@dt('2018-09-01T00:00:00.000Z')</code>）</p>
+</blockquote>
+<p>— <a href="https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_date_and_time.html">Date and time values（HCL Domino Designer 14.5.1）</a></p>
+<h3 id="3-dt-utc">3. @dt 不加時區 = UTC<a class="headerlink" href="#3-dt-utc" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>"Without timezone modifiers (+ or – hh:mm suffixes) <strong>all times are taken as UTC values (GMT)</strong>."</p>
+</blockquote>
+<p>— 同上頁。台灣環境要寫 <code>+08:00</code>，例如 <code>@dt('2024-01-01T00:00:00+08:00')</code>。</p>
+<h3 id="4-view">4. View 直欄查詢的前置條件<a class="headerlink" href="#4-view" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>"Columnname is the programmatic name of any <strong>primary sorted column</strong> in the view or folder specified."（直欄必須是有排序的直欄；<code>$123</code> 是 programmatic name，來文日期直欄有設遞增排序，符合）</p>
+</blockquote>
+<p>— <a href="https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_syntax.html">DQL syntax</a>、<a href="https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_view_column.html">View column requirements</a></p>
+<blockquote>
+<p>Design catalog 過期時："Only the <code>&lt;'View or folder name'&gt;.&lt;Columnname&gt;</code> syntax will fail."</p>
+</blockquote>
+<p>— <a href="https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_design_catalog.html">Design catalog</a></p>
+<h3 id="5-select-all-vs">5. <code>SELECT @All</code> 條件：官方文件 vs 實測（重要修正）<a class="headerlink" href="#5-select-all-vs" title="Permanent link">&para;</a></h3>
+<p>官方文件（<a href="https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_view_column.html">View column requirements</a>）寫 <code>'view'.column</code> 語法要求：</p>
+<blockquote>
+<p>"the view must use Select @All as its selection criteria."（不符時 "the query fails with a return code"）</p>
+</blockquote>
+<p>但 <strong>Domino 12 實測行為不是報錯</strong>（見 <a href="https://bryanhsiao.github.io/domino-news/posts/dql-pitfalls/">DQL 踩坑筆記</a>）：</p>
+<blockquote>
+<p>"runtime 不會擋下「view 不是 Select @All」的查詢，沒有錯誤訊息 —— 但 <strong>DQL 會以該 view selection 篩出來的 doc 為範圍</strong>做查詢"</p>
+</blockquote>
+<p>原因是 DQL 底層直接用 view 既有的 column index，而 index 建立時就只含符合 selection 的文件。<strong>實務影響</strong>：view selection 公式篩掉的文件，查詢時無聲消失、不會有任何錯誤——這在 selection 複雜的正式 view 上是另一個「有些抓得到有些沒抓到」的來源。解法（依該文）：改 view 為 <code>SELECT @All</code>、改用 <code>in('viewname') and field = value</code> 語法、或建專用的 <code>($DQL)</code> 查詢 view。</p>
+<p><strong>改過直欄公式之後</strong>，記得讓 view index 重建，並更新 design catalog：
+<code>load updall &lt;db path&gt; -d</code>（初次建立用 <code>-e</code>）。沒更新的話，view 直欄語法可能失敗或用到舊的直欄定義。</p>
+<blockquote>
+<p>✅ <strong>實測（Domino，2026-07-16 單點測試）</strong>：<code>'view'.column</code> 查詢失敗時都是錯誤碼 4854，但訊息分層、可直接對症下藥——</p>
+<table>
+<thead>
+<tr>
+<th>層</th>
+<th>4854 錯誤訊息（原文）</th>
+<th>病因 / 解法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. 無 design catalog</td>
+<td><code>Error validating view column name - ['view'.$123] .. invalid view name or database needs to be cataloged via updall -e</code></td>
+<td>跑 <code>load updall &lt;db&gt; -e</code>（view 設計變更後跑 <code>-d</code>）</td>
+</tr>
+<tr>
+<td>2. view index 沒建過</td>
+<td><code>View never built [viewName] - query term will fail, aborting</code></td>
+<td>view 建好後從未被開啟過；開一次 view 或 <code>load updall &lt;db&gt; -t &lt;view&gt;</code> 建 index，DQL 不會代建</td>
+</tr>
+<tr>
+<td>3. @dt 只給日期</td>
+<td><code>Partial TIMEDATEs NOT supported with view column lookup, specify a full TIMEDATE</code></td>
+<td>官方規則的 runtime 實證；給完整 timestamp（含時間與時區）</td>
+</tr>
+</tbody>
+</table>
+<p>三層都是<strong>硬報錯、不會默默 fallback 或給部分結果</strong>。<strong>排查判斷式</strong>：查詢「有結果但部分缺漏」＝ 上面三層都過了，問題出在型別混雜/時區/view selection 篩範圍。</p>
+</blockquote>
+<hr />
+<h2 id="_2">為什麼「轉成日期反而有些抓得到有些沒抓到」<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>把三件事疊起來就完全解釋得通：</p>
+<table>
+<thead>
+<tr>
+<th>原因</th>
+<th>機制</th>
+<th>症狀</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>底層 DocDate 混型（部分文件存文字）</td>
+<td>直欄改成回傳日期後，<code>@IsText</code> 分支的文件直欄值仍是文字；<code>@dt</code> 查詢詞只比對日期型的值</td>
+<td>日期型的那批抓得到，文字型的那批默默消失</td>
+</tr>
+<tr>
+<td><code>@dt</code> 沒帶 <code>+08:00</code></td>
+<td>查詢邊界被當成 UTC，與台灣時間差 8 小時</td>
+<td>邊界日（起訖日）附近的文件跑錯邊</td>
+</tr>
+<tr>
+<td><code>@dt</code> 只給日期沒給時間</td>
+<td>view 搜尋不支援 partial date</td>
+<td>查詢報錯或行為不符預期</td>
+</tr>
+<tr>
+<td>view selection 不是 <code>SELECT @All</code></td>
+<td>DQL 以 view index 為範圍，被 selection 篩掉的文件不在 index 內（實測不報錯）</td>
+<td>selection 排除的文件無聲消失</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_3">正確做法（二選一，重點是「直欄型別 = 查詢詞型別，且全部文件一致」）<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h3 id="a">方案 A（建議）：直欄固定輸出「補零文字」，查詢用文字比較<a class="headerlink" href="#a" title="Permanent link">&para;</a></h3>
+<p>最穩、完全避開時區與混型問題，也最接近現行程式寫法。直欄公式改成強制正規化為 <code>yyyy/mm/dd</code> 補零格式：</p>
+<div class="highlight"><pre><span></span><code>_d := @If(@IsText(DocDate); @TextToTime(DocDate); DocDate);
+@Text(@Year(_d)) + &quot;/&quot; +
+@Right(&quot;0&quot; + @Text(@Month(_d)); 2) + &quot;/&quot; +
+@Right(&quot;0&quot; + @Text(@Day(_d)); 2)
+</code></pre></div>
+<p>查詢維持文字比較（注意 dtStart / dtEnd 也要是 <code>yyyy/mm/dd</code> 補零格式）：</p>
+<div class="highlight"><pre><span></span><code>in (&#39;viewName&#39;) and &#39;viewName&#39;.$123 &gt;= &#39;2024/01/01&#39; and &#39;viewName&#39;.$123 &lt; &#39;2024/02/01&#39;
+</code></pre></div>
+<blockquote>
+<p>⚠️ 現行公式 <code>@Text(@Date(DocDate))</code> 的輸出格式跟著<strong>伺服器地區設定</strong>走（zh-TW Windows 可能吐 <code>2024/1/5</code> 不補零），不補零的文字做範圍比較會錯（<code>2024/1/15</code> &lt; <code>2024/1/2</code>）。所以一定要用上面的公式強制補零，不能依賴 @Text 預設格式。</p>
+</blockquote>
+<h3 id="b-dt-timestamp">方案 B：直欄統一輸出日期時間，查詢用 @dt 完整 timestamp<a class="headerlink" href="#b-dt-timestamp" title="Permanent link">&para;</a></h3>
+<p>直欄公式讓所有文件都輸出 datetime：</p>
+<div class="highlight"><pre><span></span><code>@If(@IsText(DocDate); @TextToTime(DocDate); DocDate)
+</code></pre></div>
+<p>查詢必須（1）完整 timestamp（2）帶 +08:00 時區：</p>
+<div class="highlight"><pre><span></span><code>in (&#39;viewName&#39;) and
+&#39;viewName&#39;.$123 &gt;= @dt(&#39;2024-01-01T00:00:00+08:00&#39;) and
+&#39;viewName&#39;.$123 &lt;  @dt(&#39;2024-02-01T00:00:00+08:00&#39;)
+</code></pre></div>
+<blockquote>
+<p>⚠️ 若有文件的 DocDate 文字內容不是 @TextToTime 能解析的格式，該文件直欄會是錯誤值，仍會漏抓。方案 B 建議搭配資料清整（agent 把文字 DocDate 批次轉回真正的日期欄位），一勞永逸。</p>
+</blockquote>
+<h3 id="_4">兩個方案共同的收尾步驟<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<ol>
+<li>改完直欄公式後重建 view index（Shift+F9 或 <code>load updall &lt;db&gt; -r</code>）。</li>
+<li>更新 design catalog：<code>load updall &lt;db&gt; -d</code>。</li>
+<li>用邊界資料驗證：挑「起日當天 00:00 附近」「訖日當天」「DocDate 是文字」的文件各一份，確認查詢結果數量正確。可用 <code>NotesDominoQuery.Explain</code> 看查詢計畫確認有走 view index。</li>
+</ol>
+<hr />
+<h2 id="2026-07-16domino">單點測試實錄（2026-07-16，Domino 伺服器實測）<a class="headerlink" href="#2026-07-16domino" title="Permanent link">&para;</a></h2>
+<p><strong>環境</strong>：測試 DB 含 412 份文件 = 404 份真實收文（2023~2026，DocDate <strong>本來就大量混型</strong>，抽樣可見數十筆 STRING）+ 8 份控制組測試文件 T1~T8。同一個 <code>$123</code> 直欄做了 5 種 view 變體，查詢區間 2024/01/01（含）~ 2024/02/01（不含）本機時間，理想命中 = T1,T2,T3,T6,T7,T8 共 6 筆。</p>
+<p>測試文件：T1=2024/01/01 00:00（起日邊界）、T2=01/15 12:00、T3=01/31 23:30、T4=02/01 00:00（區間外）、T5=2023/12/31 20:00（區間外）、T6=01/01 09:00，以上日期型；T7=文字<code>"2024/01/10"</code>、T8=文字<code>"2024/1/5"</code>（未補零）。</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>直欄公式</th>
+<th>查詢</th>
+<th>命中</th>
+<th>結果分析</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>現行 <code>@Text(@Date())</code> 文字</td>
+<td>文字比較</td>
+<td>5/6</td>
+<td>❌ <strong>T8 遺失</strong>：未補零文字 <code>2024/1/5</code> 範圍比較錯位</td>
+</tr>
+<tr>
+<td>B</td>
+<td><strong>方案A</strong> 補零 yyyy/mm/dd 文字</td>
+<td>文字比較</td>
+<td><strong>6/6</strong></td>
+<td>✅ 全中</td>
+</tr>
+<tr>
+<td>C</td>
+<td>方案B 日期型</td>
+<td><code>@dt('2024-01-01')</code> 只給日期</td>
+<td>報錯</td>
+<td>✅ <code>Partial TIMEDATEs NOT supported with view column lookup</code></td>
+</tr>
+<tr>
+<td>D</td>
+<td>方案B 日期型</td>
+<td><code>@dt(...T00:00:00Z)</code> 無時區</td>
+<td>6 筆但<strong>成員錯</strong></td>
+<td>❌ <strong>T1 漏抓、T4 誤入</strong>——筆數看起來對、內容錯，最危險</td>
+</tr>
+<tr>
+<td>E</td>
+<td><strong>方案B</strong> 日期型</td>
+<td><code>@dt(...T00:00:00+08:00)</code></td>
+<td><strong>6/6</strong></td>
+<td>✅ 全中；Explain 證實走 view index（ScannedDocs 0）</td>
+</tr>
+<tr>
+<td>F</td>
+<td>混型（DocDate 原樣）</td>
+<td>同 E 的 @dt 查詢</td>
+<td>4/6</td>
+<td>❌ <strong>T7/T8 文字型無聲消失——工程師症狀完整重現</strong></td>
+</tr>
+<tr>
+<td>H</td>
+<td>仿真實 view（非 @All、分類欄、遞減排序）</td>
+<td>文字比較</td>
+<td>4</td>
+<td>selection 排除的 T6 <strong>無聲消失、不報錯</strong>（實證 <a href="https://bryanhsiao.github.io/domino-news/posts/dql-pitfalls/">DQL 踩坑筆記</a>）；分類最左欄 + <code>$123</code> 遞減（<code>resort</code> 升冪）可正常查詢</td>
+</tr>
+</tbody>
+</table>
+<p><strong>真實 view 最終驗證</strong>：對正式的來文簽辦單 view（<code>$123</code> = 現行文字公式）直接下查詢——用 <code>@dt</code> 查 0 筆、用文字比較查中目標文件（1 筆）。<strong>判斷法則：看直欄公式最終輸出的型別，決定查詢詞型別</strong>；現行公式 <code>@If(@IsText(DocDate);DocDate;@Text(@Date(DocDate)))</code> 兩個分支都輸出文字，所以是文字直欄、要用文字比較。</p>
+<p><strong>三個最重要的實證</strong>：</p>
+<ol>
+<li><strong>F 完整重現「有些抓得到有些沒抓到」</strong>：混型直欄 + <code>@dt</code> 查詢 → 日期型命中、文字型無聲消失，無任何錯誤或警告。</li>
+<li><strong>D 是最危險的陷阱</strong>：<code>@dt</code> 忘了帶 <code>+08:00</code> 時，T1 被漏掉、T4 被誤抓——<strong>總筆數還是 6、看起來完全正常</strong>，只有逐筆核對才會發現內容錯了。</li>
+<li><strong>真實資料的混型比想像嚴重</strong>：404 份真實收文中抽樣就有數十筆 DocDate 是文字型（且橫跨 2023~2026 都有），代表某個輸入路徑持續寫入文字日期——<strong>資料清整是治本，直欄正規化是治標</strong>，兩者都該做。</li>
+</ol>
+<blockquote>
+<p>DQL 不會自動轉型：<code>'...'</code> 查文字、<code>@dt(...)</code> 查日期，型別對不上的文件不報錯、直接查不到。這個 view 的底層欄位 DocDate 本來就有文字/日期混型（直欄公式裡的 @IsText 就是證據，實測 404 份真實文件抽樣有數十筆文字型），所以「直欄轉日期」後只剩日期型的那批查得到——<strong>單點測試已完整重現</strong>（混型直欄 @dt 查詢 6 筆只中 4 筆，文字型無聲消失）。解法是讓直欄對<strong>所有文件輸出同一種型別</strong>，再用同型別的查詢詞：<strong>方案 A（補零 yyyy/mm/dd 文字 + 文字比較）與方案 B（@TextToTime 統一日期型 + 完整 timestamp 帶 +08:00 的 @dt）實測都 6/6 全中</strong>。@dt 忘記帶時區是最陰的坑：實測筆數一樣是 6、但邊界文件一漏一誤，逐筆核對才看得出來。另外真實 view 的 selection 不是 @All 也會讓被篩掉的文件無聲消失（實測不報錯）。</p>
+</blockquote>
+<h2 id="_5">參考資料<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_syntax.html">DQL syntax — HCL Domino Designer 14.5.1</a></li>
+<li><a href="https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_date_and_time.html">Date and time values — HCL Domino Designer 14.5.1</a></li>
+<li><a href="https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_view_column.html">View column requirements — HCL Domino Designer 14.5.1</a></li>
+<li><a href="https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_design_catalog.html">Design catalog — HCL Domino Designer 14.5.1</a></li>
+<li><a href="https://help.hcl-software.com/dom_designer/14.5.1/basic/dql_view_column.html">View column requirements — HCL Domino Designer 14.5.1</a></li>
+<li><a href="https://bryanhsiao.github.io/domino-news/posts/dql-pitfalls/">DQL 踩坑筆記（Domino 12 實測）— domino-news</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.expand", "toc.follow", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u8907\u88fd", "clipboard.copy": "\u8907\u88fd", "search.result.more.one": "\u6b64\u9801\u5c1a\u6709 1 \u500b\u7b26\u5408\u7684\u9805\u76ee", "search.result.more.other": "\u6b64\u9801\u5c1a\u6709 # \u500b\u7b26\u5408\u7684\u9805\u76ee", "search.result.none": "\u6c92\u6709\u7b26\u5408\u7684\u9805\u76ee", "search.result.one": "\u627e\u5230 1 \u500b\u7b26\u5408\u7684\u9805\u76ee", "search.result.other": "\u627e\u5230 # \u500b\u7b26\u5408\u7684\u9805\u76ee", "search.result.placeholder": "\u6253\u5b57\u9032\u884c\u641c\u5c0b", "search.result.term.missing": "\u7f3a\u5c11\u5b57\u8a5e", "select.version": "\u9078\u64c7\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
